@@ -2,10 +2,6 @@ import pip
 import os
 from os import listdir
 from os.path import isfile, join
-import numpy as np
-import pandas as pd
-import math
-import seaborn as sns
 
 def import_or_install(package):
     try:
@@ -14,8 +10,17 @@ def import_or_install(package):
         pip.main(['install', package])
 
 import_or_install('comtrade')
+import_or_install('numpy')
+import_or_install('pandas')
+import_or_install('seaborn')
+import_or_install('matplotlib')
 
 import comtrade
+import numpy as np
+import pandas as pd
+import math
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 def read_comtrade_channels():
   # fname = 'upload/'+'toanalyze'
@@ -54,9 +59,9 @@ def analyze(channels):
     df['VR'] = rec.analog[0][:len_df]
     df['VS'] = rec.analog[1][:len_df]
     df['VT'] = rec.analog[2][:len_df]
-    df['N_VR'] = get_normal_2(df.VR)[:len_df]
-    df['N_VS'] = get_normal_2(df.VS)[:len_df]
-    df['N_VT'] = get_normal_2(df.VT)[:len_df]
+    df['N_VR'] = get_normal_2(df.VR,len_df)[:len_df]
+    df['N_VS'] = get_normal_2(df.VS,len_df)[:len_df]
+    df['N_VT'] = get_normal_2(df.VT,len_df)[:len_df]
 
     df_temp = df.copy()[["VR","N_VR","VS","N_VS","VT","N_VT"]]
 
@@ -84,19 +89,32 @@ def analyze(channels):
       df2[i] = get_rms(df.TIME, np.array(df[i])*scaling_factor)[:3000]
       df2['N_'+i] = get_rms(df.TIME, np.array(df['N_'+i])*scaling_factor)[:3000]
 
+      plt.switch_backend('agg')
+      plt.clf()
+      plt.plot(np.array(df2[i]))
+      plt.savefig(i+".png")
+
     for i in [faulty]:
-      # df_temp = df.copy()[[faulty]]
-      # df_temp = df_temp.set_axis(['V'], axis=1)
+      df_temp = df2.copy()[[faulty]]
+      df_temp = df_temp.set_axis(['V'], axis=1)
+      plt.switch_backend('agg')
+      plt.clf()
+      plt.plot(np.array(df_temp['V']))
+      plt.savefig("faulty_wave.png")
       # labels = list(np.repeat(1, len(df_temp)))
       # df_temp['labels'] = labels
       # df_new = pd.concat([df_new, df_temp])
 
-      df_temp = df.copy()[['N_'+faulty]]
+      df_temp = df2.copy()[['N_'+faulty]]
       df_temp = df_temp.set_axis(['V'], axis=1)
+      plt.switch_backend('agg')
+      plt.clf()
+      plt.plot(np.array(df_temp['V']))
+      plt.savefig("normal_wave.png")
       labels = list(np.repeat(0, len(df_temp)))
       df_temp['labels'] = labels
       df_new = pd.concat([df_new, df_temp])
-      print(df_new)
+      # print(df_new)
 
   try:
     arr_to_analyze = np.reshape(list(df_temp['V']),(len(df_temp['V']),1,1))
@@ -116,14 +134,14 @@ def run_ml_predict(faultychannellist):
   from keras.models import load_model
   opt_adam = keras.optimizers.Adam(learning_rate=0.001)
   model = load_model('bestmodel.h5')
-  # model.compile(optimizer=opt_adam,
-  #                 loss=['binary_crossentropy'],
-  #                 metrics=['accuracy'])
+  model.compile(optimizer=opt_adam,
+                  loss=['binary_crossentropy'],
+                  metrics=['accuracy'])
   prediction = model.predict(faultychannellist)
   # prediction = model.predict_classes(faultychannellist)
   return prediction
 
-def get_normal_2(signal):
+def get_normal_2(signal,len_time):
   inslope = False
   index = 0
   offset = 0
@@ -150,7 +168,9 @@ def get_normal_2(signal):
   sample_wave = list(signal[:index])
   normal_wave_5 = sample_wave+sample_wave+sample_wave+sample_wave+sample_wave
   normal_wave_10 = normal_wave_5+normal_wave_5
-  normal_wave = normal_wave_10+normal_wave_10+normal_wave_10+normal_wave_10+normal_wave_10+normal_wave_10
+  normal_wave = normal_wave_10
+  while len(normal_wave) < len_time:
+    normal_wave = normal_wave + normal_wave_10
   return normal_wave
 
 def get_maximum(arr):
