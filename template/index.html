@@ -1,6 +1,6 @@
 <!doctype html>
-<title>Upload new File</title>
-<h1>Upload new File</h1>
+<title>Upload new Comtrade File</title>
+<h1>Upload new Comtrade File</h1>
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <ul class=flashes>
@@ -11,6 +11,9 @@
 {% endif %}
 {% endwith %}
 {% block body %}
+{% if data.error is not none %}
+{{data.error}}
+{% endif %}
 <form method=post enctype=multipart/form-data>
     <label>dat file</label>
     <input type=file name=datfile>
@@ -18,4 +21,33 @@
     <input type=file name=cfgfile>
     <input type=submit value=Upload>
 </form>
+<hr>
+<h1>Uploaded Comtrade File</h1>
+<p>Currently uploaded cfg file: {% if cfgfilename is not none %}{{data.cfgfilename}}{% endif %}</p>
+<p>Currently uploaded dat file: {% if datfilename is not none %}{{data.datfilename}}{% endif %}</p>
+{% if data.channels is not none %}
+
+<form method=post action="analyze">
+    <label>Channel VR / VA:</label>
+    <select id="vr" name="vr">
+    {% for item in data.channels %}
+    <option value="{{loop.index}}" {% if 'VR' in item or 'VA' in item %}selected{% endif %}>{{item}}</option>
+    {% endfor %}
+    </select>
+    <label>Channel VS / VB:</label>
+    <select id="vs" name="vs">
+    {% for item in data.channels %}
+    <option value="{{loop.index}}" {% if 'VS' in item or 'VB' in item %}selected{% endif %}>{{item}}</option>
+    {% endfor %}
+    </select>
+    <label>Channel VT / VC:</label>
+    <select id="vt" name="vt">
+    {% for item in data.channels %}
+    <option value="{{loop.index}}" {% if 'VT' in item or 'VC' in item %}selected{% endif %}>{{item}}</option>
+    {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Analyze">
+</form>
+{% endif %}
 {% endblock %}
