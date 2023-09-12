@@ -92,6 +92,7 @@ def upload_file():
             return redirect(url_for('upload_file'))
     else:
         channels = ca.read_comtrade_channels()
+        
     data["cfgfilename"] = None
     data["datfilename"] = None
     dir = UPLOAD_FOLDER
@@ -112,7 +113,7 @@ def analyze_comtrade():
         vs = request.form['vs']
         vt = request.form['vt']
         channels = [int(vr),int(vs),int(vt)]
-        return ca.read_comtrade_channels(channels)
+        return ca.analyze(channels)
 
 if __name__ == '__main__':
     # app.run()

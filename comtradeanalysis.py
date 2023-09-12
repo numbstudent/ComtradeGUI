@@ -3,6 +3,9 @@ import os
 from os import listdir
 from os.path import isfile, join
 import numpy as np
+import pandas as pd
+import math
+import seaborn as sns
 
 def import_or_install(package):
     try:
@@ -32,38 +35,39 @@ def read_comtrade_channels():
     # print("Channels:")
     return rec.analog_channel_ids
 
-def read_comtrade_channels(channels):
+def analyze(channels):
   # fname = 'upload/'+'toanalyze'
   mypath = './'
   onlyfiles = [mypath+'/'+os.path.splitext(f)[:-1][0] for f in listdir(mypath) if isfile(join(mypath, f)) and f.split('.')[-1].upper() == 'CFG']
   onlyfiles = list(set(onlyfiles))
-  
+  df_new = pd.DataFrame(columns=["V"])
+  faulty = ""
+
   if len(onlyfiles) > 0:
     fname = onlyfiles[0]
     rec = comtrade.load(fname+".cfg", fname+".dat")
     print("Trigger time = {}s".format(rec.trigger_time))
-    # vrchannel = rec.analog_channel_ids[int(vr)]
-    # vschannel = rec.analog_channel_ids[int(vs)]
-    # vtchannel = rec.analog_channel_ids[int(vt)]
-    # vrdata = str(rec.analog[int(vr)][0])
-    # return "Channel to analyze: "+vrdata
 
     len_df = len(rec.time)
+    df = pd.DataFrame(list(rec.time), columns =['TIME'])
 
+    df['VR'] = rec.analog[0][:len_df]
+    df['VS'] = rec.analog[1][:len_df]
+    df['VT'] = rec.analog[2][:len_df]
     df['N_VR'] = get_normal_2(df.VR)[:len_df]
     df['N_VS'] = get_normal_2(df.VS)[:len_df]
     df['N_VT'] = get_normal_2(df.VT)[:len_df]
-    df['N_VAVG'] = get_normal_2(df.VAVG)[:len_df]
 
-    df_temp = df.copy()[["VR","N_VR","VS","N_VS","VT","N_VT","VAVG","N_VAVG"]]
+    df_temp = df.copy()[["VR","N_VR","VS","N_VS","VT","N_VT"]]
 
     corr = df_temp.corr()
     corr_VR = corr["VR"]["N_VR"]
     corr_VS = corr["VS"]["N_VS"]
     corr_VT = corr["VT"]["N_VT"]
-    # sns.heatmap(corr)
-    # plt.show()
-    faulty = ""
+    hm = sns.heatmap(corr)
+    fig = hm.get_figure()
+    fig.savefig("heatmap.png")
+
     if corr_VR < corr_VS and corr_VR < corr_VT:
       faulty = "VR"
     elif corr_VS < corr_VR and corr_VS < corr_VT:
@@ -71,72 +75,53 @@ def read_comtrade_channels(channels):
     elif corr_VT < corr_VR and corr_VT < corr_VS:
       faulty = "VT"
 
-    df2 = pd.DataFrame(columns=["VR","VS","VT","VAVG","N_VR","N_VS","N_VT","N_VAVG"])
-    # for i in [faulty]:
-    for i in ["VR","VS","VT","VAVG"]:
+    df2 = pd.DataFrame(columns=["VR","VS","VT","N_VR","N_VS","N_VT"])
+
+    for i in ["VR","VS","VT"]:
+
+      scaling_factor = get_scaling_factor(list(df['N_'+faulty]))
+
+      df2[i] = get_rms(df.TIME, np.array(df[i])*scaling_factor)[:3000]
+      df2['N_'+i] = get_rms(df.TIME, np.array(df['N_'+i])*scaling_factor)[:3000]
+
+    for i in [faulty]:
       # df_temp = df.copy()[[faulty]]
       # df_temp = df_temp.set_axis(['V'], axis=1)
       # labels = list(np.repeat(1, len(df_temp)))
       # df_temp['labels'] = labels
       # df_new = pd.concat([df_new, df_temp])
 
+      df_temp = df.copy()[['N_'+faulty]]
+      df_temp = df_temp.set_axis(['V'], axis=1)
+      labels = list(np.repeat(0, len(df_temp)))
+      df_temp['labels'] = labels
+      df_new = pd.concat([df_new, df_temp])
+      print(df_new)
 
-      # df_temp = df.copy()[['N_'+faulty]]
-      # df_temp = df_temp.set_axis(['V'], axis=1)
-      # labels = list(np.repeat(0, len(df_temp)))
-      # df_temp['labels'] = labels
-      # df_new = pd.concat([df_new, df_temp])
-      # # df_temp = df_temp.rename(columns={'N_VR': 'VR', 'N_VS': 'VS', 'N_VT': 'VT', 'N_VAVG': 'VAVG'})
-      # # labels = list(np.repeat(0, len(df_temp)))
-      # # df_temp['labels'] = labels
-      # # df_new = pd.concat([df_new, df_temp])
+  try:
+    arr_to_analyze = np.reshape(list(df_temp['V']),(len(df_temp['V']),1,1))
+    # print(arr_to_analyze.shape)
+    result = run_ml_predict(arr_to_analyze)
+    # print(result)
+    print("prediction shape: ", result.shape)
+    if np.mean(result[0]) > 0.5:
+      return "Faulty occurs on "+faulty+" ("+str(np.mean(result[0])*100)+"%)"
+    else:
+      return "Data is normal."
+  except:
+    return 'Prediction process error.'
 
-      scaling_factor = get_scaling_factor(list(df['N_'+faulty]))
-
-      # df2[i] = get_plot_freq(df.TIME,np.array(df[i])*scaling_factor)
-      # df2['N_'+i] = get_plot_freq(df.TIME,np.array(df['N_'+i])*scaling_factor)
-
-      # plot_freq(df.TIME,np.array(df[faulty])*scaling_factor)
-      # plot_freq(df.TIME,np.array(df['N_'+faulty])*scaling_factor)
-      # plt.plot(df.TIME,np.array(df[faulty])*scaling_factor)
-      # plt.plot(df.TIME,np.array(df['N_'+faulty])*scaling_factor)
-      # plt.show()
-      # plot_rms(df.TIME,df[faulty]*scaling_factor)
-      # plot_rms(df.TIME,df['N_'+faulty]*scaling_factor)
-      # plt.show()
-
-      df2[i] = get_rms(df.TIME, np.array(df[i])*scaling_factor)[:3000]
-      df2['N_'+i] = get_rms(df.TIME, np.array(df['N_'+i])*scaling_factor)[:3000]
-
-    newname = fname.split(".")
-    newname.pop()
-    newname = "".join(newname)+"_rms.csv"
-    # print(newname)
-    print(df2)
-    df2.to_csv(newname)
-
-
-    # for i in channels:
-      
-      # observed_signal = rec.analog[i]
-      # normal_wave = get_normal_2(observed_signal)
-      # # print(normal_wave)
-      # max_val = get_maximum(normal_wave)
-      # cur_max = 100
-      # scaling_factor = cur_max/max_val
-      # max_len = 0
-      # print(len(rec.time),len(normal_wave))
-      # if len(normal_wave) > len(rec.time):
-      #   max_len = len(observed_signal)
-      # else:
-      #   max_len = len(normal_wave)
-      # print(max_len)
-
-      # final_time = scaling_factor*signal.resample(df.TIME[:max_len], 3000)
-      # final_normal = scaling_factor*signal.resample(normal_wave[:max_len], 3000)
-      # final_original = scaling_factor*signal.resample(observed_signal[:max_len], 3000)
-
-  return "meong"
+def run_ml_predict(faultychannellist):
+  from tensorflow import keras
+  from keras.models import load_model
+  opt_adam = keras.optimizers.Adam(learning_rate=0.001)
+  model = load_model('bestmodel.h5')
+  # model.compile(optimizer=opt_adam,
+  #                 loss=['binary_crossentropy'],
+  #                 metrics=['accuracy'])
+  prediction = model.predict(faultychannellist)
+  # prediction = model.predict_classes(faultychannellist)
+  return prediction
 
 def get_normal_2(signal):
   inslope = False
@@ -182,3 +167,46 @@ def get_maximum(arr):
     return Lower_Fence
   else:
     return Upper_Fence
+
+def get_scaling_factor(arr):
+  x = sorted(list(arr), reverse=True)
+  # maxval = sum(x[:20])/20
+  # return maxval
+  x2 = np.array(x[:1500])
+  Q1 = np.quantile(x2, 0.25)
+  Q3 = np.quantile(x2, 0.75)
+  IQR = Q3 - Q1
+  Lower_Fence = Q1 - (1.5 * IQR) * -1
+  Upper_Fence = Q3 + (1.5 * IQR)
+  max_val = 0
+  if Lower_Fence < Upper_Fence:
+    max_val = Lower_Fence
+  else:
+    max_val = Upper_Fence
+  cur_max = 100
+  scaling_factor = cur_max/max_val
+  return scaling_factor
+
+def get_rms(df_time,data):
+  s_rate = get_fs(df_time)
+
+  Fs = s_rate//10
+
+  RMS = lambda x: np.sqrt(np.mean(x**2))
+  # print(len(data)-Fs)
+  sample = np.arange(len(data)-Fs)
+  RMS_of_sample = []
+  for ns in sample:
+      # here you can apply the frequency window for the sample
+      RMS_of_sample.append(RMS(data[ns:ns+Fs]))
+  return np.array(RMS_of_sample)
+
+def get_fs(df_time):
+  s_rate = math.floor(len(df_time)/(df_time[len(df_time)-1]-df_time[0]))
+  s_rate_floor = math.floor(s_rate/100)*100
+  s_rate_ceil = math.ceil(s_rate/100)*100
+  if abs(s_rate-s_rate_floor) < abs(s_rate-s_rate_ceil):
+    s_rate = s_rate_floor
+  else:
+    s_rate = s_rate_ceil
+  return s_rate
