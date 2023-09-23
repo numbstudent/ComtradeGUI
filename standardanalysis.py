@@ -210,7 +210,7 @@ def analyze(df):
             else:
                 result.append(i+" is normal.")
                 # print("Line "+i+" is normal.")
-    except x:
+    except:
         result.append("Error found when running.")
         # print("Error found when running.")
 
