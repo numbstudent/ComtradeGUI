@@ -32,7 +32,8 @@ app.config.from_mapping(
 
 @app.route('/')
 def hello_world():
-    return 'Hello World'
+    return redirect(url_for('upload_file'))
+    # return 'Hello World'
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -103,7 +104,7 @@ def upload_file():
             data["datfilename"] = file
     data["channels"] = channels
     data["error"] = error
-    return render_template('/index.html',data=data)
+    return render_template('/upload.html',data=data)
 
 
 @app.route('/analyze', methods=['GET', 'POST'])
@@ -113,7 +114,31 @@ def analyze_comtrade():
         vs = request.form['vs']
         vt = request.form['vt']
         channels = [int(vr),int(vs),int(vt)]
-        return ca.analyze(channels)
+        print(channels)
+        # return ca.analyze(channels)
+        # return ','.join()
+        # print(ca.standard_analyze(channels))
+        result = ca.standard_analyze(channels)
+        data = {}
+        if len(result) == 3:
+            data["result"] = None
+            data["result_VR"] = result[0]
+            data["result_VS"] = result[1]
+            data["result_VT"] = result[2]
+        else:
+            result = ', '.join(result)
+            data["result"] = result
+        data["cfgfilename"] = None
+        data["datfilename"] = None
+        dir = UPLOAD_FOLDER
+        for file in os.listdir(dir):
+            if file.endswith(".cfg"):
+                data["cfgfilename"] = file
+            if file.endswith(".dat"):
+                data["datfilename"] = file
+        return render_template('/result.html', data=data)
+    else:
+        return redirect(url_for('upload_file'))
 
 if __name__ == '__main__':
     # app.run()

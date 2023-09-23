@@ -3,6 +3,8 @@ import os
 from os import listdir
 from os.path import isfile, join
 
+import standardanalysis as sa
+
 def import_or_install(package):
     try:
         __import__(package)
@@ -39,6 +41,30 @@ def read_comtrade_channels():
     # print("Trigger time = {}s".format(rec.trigger_time))
     # print("Channels:")
     return rec.analog_channel_ids
+
+def standard_analyze(channels):
+  mypath = './'
+  onlyfiles = [mypath+'/'+os.path.splitext(f)[:-1][0] for f in listdir(
+      mypath) if isfile(join(mypath, f)) and f.split('.')[-1].upper() == 'CFG']
+  onlyfiles = list(set(onlyfiles))
+  df_new = pd.DataFrame(columns=["V"])
+  faulty = ""
+
+  if len(onlyfiles) > 0:
+    fname = onlyfiles[0]
+    rec = comtrade.load(fname+".cfg", fname+".dat")
+    print("Trigger time = {}s".format(rec.trigger_time))
+
+    len_df = len(rec.time)
+    df = pd.DataFrame(list(rec.time), columns=['TIME'])
+
+    df['VR'] = rec.analog[0][:len_df]
+    df['VS'] = rec.analog[1][:len_df]
+    df['VT'] = rec.analog[2][:len_df]
+
+    result = sa.analyze(df)
+    return result
+    # print(result)
 
 def analyze(channels):
   # fname = 'upload/'+'toanalyze'
@@ -130,6 +156,7 @@ def analyze(channels):
     return 'Prediction process error.'
 
 def run_ml_predict(faultychannellist):
+  import_or_install('keras')
   from tensorflow import keras
   from keras.models import load_model
   opt_adam = keras.optimizers.Adam(learning_rate=0.001)
