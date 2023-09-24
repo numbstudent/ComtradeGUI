@@ -182,7 +182,7 @@ def analyze(df):
                 None
             try:
                 plt.plot(df.TIME,fs, label=i)
-                # plt.plot(ns, label='N_'+i)
+                plt.plot(df.TIME, ns, label='N_'+i)
                 plt.legend()
                 # plt.show()
                 plt.savefig("static/"+i+".png")
