@@ -180,8 +180,48 @@ def analyze(df):
                 os.remove("static/"+i+".png")
             except:
                 None
+
+            faulty_found = False
+            datasplit = [0, int(len(fs)//5), int(len(fs)*2//5),
+                         int(len(fs)*3//5), int(len(fs)*4//5), int(len(fs))]
+            datasplit = [0]
+            nsplit = 50
+            for k in range(1,nsplit):
+                datasplit.append(int(len(fs)*k//nsplit))
+            datasplit.append(int(len(fs)))
+            x1 = []
+            x2 = []
+            for j in range(0, len(datasplit)-1):
+                stdn = np.std(ns[datasplit[j]:datasplit[j+1]])
+                stdf = np.std(fs[datasplit[j]:datasplit[j+1]])
+
+                ratio = 0
+                if stdf < stdn:
+                    ratio = stdn/stdf
+                else:
+                    ratio = stdf/stdn
+                # print("ratio "+i+": "+str(ratio))
+                if ratio > 1.1:
+                    x1.append(datasplit[j])
+                    x2.append(datasplit[j+1]-1)
+                    faulty_found = True
+            if faulty_found:
+                result.append(i+" is faulty!")
+                # print("Line "+i+" is faulty!")
+            else:
+                result.append(i+" is normal.")
+                # print("Line "+i+" is normal.")
             try:
-                plt.plot(df.TIME,fs, label=i)
+                maxh = np.max(fs)
+                minh = np.abs(np.min(fs))
+                if maxh > minh:
+                    maxh = minh
+                plt.plot(df.TIME, fs, label=i)
+                if len(x1) > 0:
+                    for ii in range(0,len(x1)):
+                        print(x1[ii],x2[ii])
+                        plt.fill_betweenx(x1=df.TIME[x1[ii]],
+                                        x2=df.TIME[x2[ii]], y=[-1*maxh, maxh], alpha=0.1, color='orange')
                 # plt.plot(df.TIME, ns, label='N_'+i)
                 plt.legend()
                 # plt.show()
@@ -189,27 +229,6 @@ def analyze(df):
                 plt.clf()
             except:
                 print("Unable to save figures.")
-
-            faulty_found = False
-            datasplit = [0, int(len(fs)//5), int(len(fs)*2//5),
-                         int(len(fs)*3//5), int(len(fs)*4//5), int(len(fs))]
-            for j in range(0, len(datasplit)-1):
-                stdn = np.std(ns[datasplit[j]:datasplit[j+1]])
-                stdf = np.std(fs[datasplit[j]:datasplit[j+1]])
-
-            ratio = 0
-            if stdf < stdn:
-                ratio = stdn/stdf
-            else:
-                ratio = stdf/stdn
-            if ratio > 1.1:
-                faulty_found = True
-            if faulty_found:
-                result.append(i+" is faulty!")
-                # print("Line "+i+" is faulty!")
-            else:
-                result.append(i+" is normal.")
-                # print("Line "+i+" is normal.")
     except:
         result.append("Error found when running.")
         # print("Error found when running.")
