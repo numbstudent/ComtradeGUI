@@ -113,18 +113,25 @@ def analyze_comtrade():
         vr = request.form['vr']
         vs = request.form['vs']
         vt = request.form['vt']
-        channels = [int(vr),int(vs),int(vt)]
+        iir = request.form['ir']
+        iis = request.form['is']
+        iit = request.form['it']
+        channels = [int(vr),int(vs),int(vt),int(iir),int(iis),int(iit)]
         print(channels)
         # return ca.analyze(channels)
         # return ','.join()
         # print(ca.standard_analyze(channels))
         result = ca.standard_analyze(channels)
         data = {}
-        if len(result) == 3:
+        # print(len(result))
+        if len(result) == 6:
             data["result"] = None
             data["result_VR"] = result[0]
             data["result_VS"] = result[1]
             data["result_VT"] = result[2]
+            data["result_IR"] = result[3]
+            data["result_IS"] = result[4]
+            data["result_IT"] = result[5]
         else:
             result = ', '.join(result)
             data["result"] = result

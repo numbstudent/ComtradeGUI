@@ -164,12 +164,15 @@ def analyze(df):
     try:
         len_df = len(df.TIME)
 
-        df_temp = df.copy()[["TIME", "VR", "VS", "VT"]]
+        df_temp = df.copy()[["TIME", "VR", "VS", "VT", "IR", "IS", "IT"]]
         df_temp["N_VR"] = get_normal_2(df["VR"])
         df_temp["N_VS"] = get_normal_2(df["VS"])
         df_temp["N_VT"] = get_normal_2(df["VT"])
+        df_temp["N_IR"] = get_normal_2(df["IR"])
+        df_temp["N_IS"] = get_normal_2(df["IS"])
+        df_temp["N_IT"] = get_normal_2(df["IT"])
 
-        for i in ['VR', 'VS', 'VT']:
+        for i in ["VR", "VS", "VT", "IR", "IS", "IT"]:
 
             fs = df_temp[i]
             ns = df_temp["N_"+i]
@@ -219,7 +222,7 @@ def analyze(df):
                 plt.plot(df.TIME, fs, label=i)
                 if len(x1) > 0:
                     for ii in range(0,len(x1)):
-                        print(x1[ii],x2[ii])
+                        # print(x1[ii],x2[ii])
                         plt.fill_betweenx(x1=df.TIME[x1[ii]],
                                         x2=df.TIME[x2[ii]], y=[-1*maxh, maxh], alpha=0.1, color='orange')
                 # plt.plot(df.TIME, ns, label='N_'+i)
@@ -229,7 +232,7 @@ def analyze(df):
                 plt.clf()
             except:
                 print("Unable to save figures.")
-    except:
+    except x:
         result.append("Error found when running.")
         # print("Error found when running.")
 

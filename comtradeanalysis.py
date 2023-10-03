@@ -49,7 +49,6 @@ def standard_analyze(channels):
   onlyfiles = list(set(onlyfiles))
   df_new = pd.DataFrame(columns=["V"])
   faulty = ""
-
   if len(onlyfiles) > 0:
     fname = onlyfiles[0]
     rec = comtrade.load(fname+".cfg", fname+".dat")
@@ -58,9 +57,12 @@ def standard_analyze(channels):
     len_df = len(rec.time)
     df = pd.DataFrame(list(rec.time), columns=['TIME'])
 
-    df['VR'] = rec.analog[0][:len_df]
-    df['VS'] = rec.analog[1][:len_df]
-    df['VT'] = rec.analog[2][:len_df]
+    df['VR'] = rec.analog[channels[0]][:len_df]
+    df['VS'] = rec.analog[channels[1]][:len_df]
+    df['VT'] = rec.analog[channels[2]][:len_df]
+    df['IR'] = rec.analog[channels[3]][:len_df]
+    df['IS'] = rec.analog[channels[4]][:len_df]
+    df['IT'] = rec.analog[channels[5]][:len_df]
 
     result = sa.analyze(df)
     return result
