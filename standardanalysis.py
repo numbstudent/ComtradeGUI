@@ -172,6 +172,12 @@ def analyze(df):
         df_temp["N_IS"] = get_normal_2(df["IS"])
         df_temp["N_IT"] = get_normal_2(df["IT"])
 
+        v_max = np.max(np.hstack((df_temp["VR"],df_temp["VS"],df_temp["VT"],df_temp["N_VR"],df_temp["N_VS"],df_temp["N_VT"])))
+        v_min = np.min(np.hstack((df_temp["VR"],df_temp["VS"],df_temp["VT"],df_temp["N_VR"],df_temp["N_VS"],df_temp["N_VT"])))
+        
+        i_max = np.max(np.hstack((df_temp["IR"],df_temp["IS"],df_temp["IT"],df_temp["N_IR"],df_temp["N_IS"],df_temp["N_IT"])))
+        i_min = np.min(np.hstack((df_temp["IR"],df_temp["IS"],df_temp["IT"],df_temp["N_IR"],df_temp["N_IS"],df_temp["N_IT"])))
+
         for i in ["VR", "VS", "VT", "IR", "IS", "IT"]:
 
             fs = df_temp[i]
@@ -215,19 +221,28 @@ def analyze(df):
                 result.append(i+" is normal.")
                 # print("Line "+i+" is normal.")
             try:
-                maxh = np.max(fs)
-                minh = np.abs(np.min(fs))
-                if maxh > minh:
-                    maxh = minh
+                # maxh = np.max(fs)
+                # minh = np.abs(np.min(fs))
+                # if maxh > minh:
+                #     maxh = minh
                 plt.plot(df.TIME, fs, label=i)
-                if len(x1) > 0:
-                    for ii in range(0,len(x1)):
-                        # print(x1[ii],x2[ii])
-                        plt.fill_betweenx(x1=df.TIME[x1[ii]],
-                                        x2=df.TIME[x2[ii]], y=[-1*maxh, maxh], alpha=0.1, color='orange')
                 # plt.plot(df.TIME, ns, label='N_'+i)
                 plt.legend()
                 # plt.show()
+                if i[0] == "V":
+                    plt.ylim([v_min*1.1, v_max*1.1])
+                    if len(x1) > 0:
+                        for ii in range(0,len(x1)):
+                            # print(x1[ii],x2[ii])
+                            plt.fill_betweenx(x1=df.TIME[x1[ii]],
+                                            x2=df.TIME[x2[ii]], y=[v_min, v_max], alpha=0.1, color='orange')
+                elif i[0] == "I":
+                    plt.ylim([i_min*1.1, i_max*1.1])
+                    # if len(x1) > 0:
+                    #     for ii in range(0,len(x1)):
+                    #         # print(x1[ii],x2[ii])
+                    #         plt.fill_betweenx(x1=df.TIME[x1[ii]],
+                    #                         x2=df.TIME[x2[ii]], y=[i_min, i_max], alpha=0.1, color='orange')
                 plt.savefig("static/"+i+".png")
                 plt.clf()
             except:
