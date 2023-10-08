@@ -8,6 +8,10 @@ def import_or_install(package):
 
 import_or_install('flask')
 import_or_install('xgboost')
+import_or_install('sklearn')
+import_or_install('pandas')
+import_or_install('scipy')
+import_or_install('numpy')
 
 from flask import Flask
 import os
