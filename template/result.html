@@ -102,6 +102,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <div class="card-body">
                   <p>Currently uploaded CFG file: {% if cfgfilename is not none %}{{data.cfgfilename}}{% endif %}</p>
                   <p>Currently uploaded DAT file: {% if datfilename is not none %}{{data.datfilename}}{% endif %}</p>
+                  <h2>Classification result: {{ data.ml_result }}</h2>
                   {% if data.result is not none %}
                   <p>{{ data.result }}</p>
                   {% endif %}

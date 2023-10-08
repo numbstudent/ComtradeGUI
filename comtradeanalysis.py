@@ -4,6 +4,7 @@ from os import listdir
 from os.path import isfile, join
 
 import standardanalysis as sa
+import advancedanalysis as adva
 
 def import_or_install(package):
     try:
@@ -65,7 +66,9 @@ def standard_analyze(channels):
     df['IT'] = rec.analog[channels[5]][:len_df]
 
     result = sa.analyze(df)
-    return result
+    ml_result = adva.analyze(df)
+    print("capek"+ml_result)
+    return result,ml_result
     # print(result)
 
 def analyze(channels):

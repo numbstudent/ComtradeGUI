@@ -7,7 +7,7 @@ def import_or_install(package):
         pip.main(['install', package])
 
 import_or_install('flask')
-
+import_or_install('xgboost')
 
 from flask import Flask
 import os
@@ -121,7 +121,7 @@ def analyze_comtrade():
         # return ca.analyze(channels)
         # return ','.join()
         # print(ca.standard_analyze(channels))
-        result = ca.standard_analyze(channels)
+        result,ml_result = ca.standard_analyze(channels)
         data = {}
         # print(len(result))
         if len(result) == 6:
@@ -135,6 +135,7 @@ def analyze_comtrade():
         else:
             result = ', '.join(result)
             data["result"] = result
+        data["ml_result"] = ml_result
         data["cfgfilename"] = None
         data["datfilename"] = None
         dir = UPLOAD_FOLDER
