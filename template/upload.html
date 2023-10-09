@@ -149,7 +149,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel VR / VA:</label>
                           <select class="form-control" id="vr" name="vr">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'VR' in item or 'VA' in item or 'V A' in item or 'R-N' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('VR' in item or 'VA' in item or 'V A' in item or 'R-N' in item) and "heck" not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>
@@ -160,7 +160,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel VS / VB:</label>
                           <select class="form-control" id="vs" name="vs">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'VS' in item or 'VB' in item or 'V B' in item or 'S-N' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('VS' in item or 'VB' in item or 'V B' in item or 'S-N' in item) and "heck" not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>
@@ -171,7 +171,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel VT / VC:</label>
                           <select class="form-control" id="vt" name="vt">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'VT' in item or 'VC' in item or 'V C' in item or 'T-N' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('VT' in item or 'VC' in item or 'V C' in item or 'T-N' in item) and 'heck' not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>
@@ -182,7 +182,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel IR / IA:</label>
                           <select class="form-control" id="ir" name="ir">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'IR' in item or 'IA' in item or 'I A' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('IR' in item or 'IA' in item or 'I A' in item) and "heck" not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>
@@ -193,7 +193,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel IS / IB:</label>
                           <select class="form-control" id="is" name="is">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'IS' in item or 'IB' in item or 'I B' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('IS' in item or 'IB' in item or 'I B' in item) and "heck" not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>
@@ -204,7 +204,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                           <label>Channel IT / IC:</label>
                           <select class="form-control" id="it" name="it">
                             {% for item in data.channels %}
-                            <option value="{{loop.index0}}" {% if 'IT' in item or 'IC' in item or 'I C' in item %}selected{% endif %}>
+                            <option value="{{loop.index0}}" {% if ('IT' in item or 'IC' in item or 'I C' in item) and "heck" not in item %}selected{% endif %}>
                               {{item}}</option>
                             {% endfor %}
                           </select>

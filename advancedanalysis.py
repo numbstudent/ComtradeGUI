@@ -6,7 +6,8 @@ import pandas as pd
 from scipy.fft import fft, fftfreq
 from scipy.fftpack import rfft, irfft, fftfreq
 
-xgb_clf2 = pkl.load(open("model_xgboostPLN1.pkl", "rb"))
+# xgb_clf2 = pkl.load(open("model_xgboostPLN1.pkl", "rb"))
+xgb_clf2 = pkl.load(open("model_xgboostPLN2.pkl", "rb"))
 
 
 def analyze(df):
@@ -25,48 +26,48 @@ def analyze(df):
         arr_signal.append(df_temp[item])
         arr_fft1.append(plot_fft_segmented(df_temp.TIME, df_temp[item]))
 
-    vmax = 0
-    vmin = 0
-    imax = 0
-    imin = 0
-    for k in range(0, len(arr_channel)):
-        try:
-            if "V" in arr_channel[k]:
-                q75, q25 = np.percentile(arr_fft1[k], [75, 25])
-                iqr = q75 - q25
-                maxlim = np.mean(arr_fft1[k])+(3*iqr)
-                if maxlim > vmax:
-                    vmax = maxlim
-                q75, q25 = np.percentile(arr_fft2[k], [75, 25])
-                iqr = q75 - q25
-                maxlim = np.mean(arr_fft2[k])+(3*iqr)
-                if maxlim > vmax:
-                    vmax = maxlim
+    # vmax = 0
+    # vmin = 0
+    # imax = 0
+    # imin = 0
+    # for k in range(0, len(arr_channel)):
+    #     try:
+    #         if "V" in arr_channel[k]:
+    #             q75, q25 = np.percentile(arr_fft1[k], [75, 25])
+    #             iqr = q75 - q25
+    #             maxlim = np.mean(arr_fft1[k])+(3*iqr)
+    #             if maxlim > vmax:
+    #                 vmax = maxlim
+    #             q75, q25 = np.percentile(arr_fft2[k], [75, 25])
+    #             iqr = q75 - q25
+    #             maxlim = np.mean(arr_fft2[k])+(3*iqr)
+    #             if maxlim > vmax:
+    #                 vmax = maxlim
 
-            if "I" in arr_channel[k]:
-                q75, q25 = np.percentile(arr_fft1[k], [75, 25])
-                iqr = q75 - q25
-                maxlim = np.mean(arr_fft1[k])+(3*iqr)
-                if maxlim > imax:
-                    imax = maxlim
-                q75, q25 = np.percentile(arr_fft2[k], [75, 25])
-                iqr = q75 - q25
-                maxlim = np.mean(arr_fft2[k])+(3*iqr)
-                if maxlim > imax:
-                    imax = maxlim
-        except:
-            print("Error on analysis. check advancedanalysis.py.")
+    #         if "I" in arr_channel[k]:
+    #             q75, q25 = np.percentile(arr_fft1[k], [75, 25])
+    #             iqr = q75 - q25
+    #             maxlim = np.mean(arr_fft1[k])+(3*iqr)
+    #             if maxlim > imax:
+    #                 imax = maxlim
+    #             q75, q25 = np.percentile(arr_fft2[k], [75, 25])
+    #             iqr = q75 - q25
+    #             maxlim = np.mean(arr_fft2[k])+(3*iqr)
+    #             if maxlim > imax:
+    #                 imax = maxlim
+    #     except:
+    #         print("Error on analysis. check advancedanalysis.py.")
 
     for j in range(0, len(arr_channel)):
-        hmax = 0
-        hmin = 0
-        if "V" in arr_channel[j]:
-            hmax = vmax
-            hmin = vmin
-        if "I" in arr_channel[j]:
-            hmax = imax
-            hmin = imin
-        print(to_save['IR'])
+        # hmax = 0
+        # hmin = 0
+        # if "V" in arr_channel[j]:
+        #     hmax = vmax
+        #     hmin = vmin
+        # if "I" in arr_channel[j]:
+        #     hmax = imax
+        #     hmin = imin
+        print(arr_channel[j],np.array(arr_fft1[j]).shape)
         if 'VR' in arr_channel[j] or 'VA' in arr_channel[j] or 'Tegangan R' in arr_channel[j] or ':V A' in arr_channel[j]:
             to_save['VR'] = arr_fft1[j]
     #         print(arr_channel[j])
@@ -91,9 +92,10 @@ def analyze(df):
     return run_ml(to_save)
 
 def plot_fft_segmented(time, sgl):
+    # ini untuk nge-fft kan datanya aja
     time = list(time)
     sgl = list(sgl)
-    n_seg = 10
+    n_seg = 10 #datanya displit jadi 10 potong, biar masih terasa ada "time value"nya
     segment_len = len(sgl)//n_seg
     time_arr = []
     sgl_arr = []
@@ -112,7 +114,15 @@ def plot_fft_segmented(time, sgl):
 
         Z = [x for _, x in sorted(
             zip(W, np.abs(f_signal)))][(len(W)//2)+1:][:170]
+        
+        print("panjang hasil fft",len(W))
 
+        # dikasih filler karena ga semua data menghasilkan freq data > 170
+        # kenapa kok 170? gataulah kok nanya saya wkwkwk kebetulan aja pasnya segitu
+        # filler = np.mean(np.array(Z))
+        filler = Z[-1]
+        while len(Z) < 170:
+            Z.append(filler)
         result_arr.append(Z)
     return result_arr
 
@@ -129,9 +139,9 @@ def run_ml(df):
         testdata.append(vr)
         testdata.append(vs)
         testdata.append(vt)
+        # print(np.array(testdata).shape)
         col_list = ['c' + str(x) for x in range(0, 3400)]
         testdata = np.expand_dims(np.mean(np.array(testdata), axis=0), axis=0)
-        print(testdata.shape)
         test_df = pd.DataFrame(testdata, columns=col_list)
         print(test_df.shape)
         # make predictions for test data
