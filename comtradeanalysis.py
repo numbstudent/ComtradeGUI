@@ -65,9 +65,12 @@ def standard_analyze(channels):
     df['IS'] = rec.analog[channels[4]][:len_df]
     df['IT'] = rec.analog[channels[5]][:len_df]
 
-    result = sa.analyze(df)
+    result,error = sa.analyze(df)
+    # if error == False:
     ml_result = adva.analyze(df)
-    print("capek"+ml_result)
+    # else:
+    #   ml_result = "File is not compatible"
+    print("capek",ml_result)
     return result,ml_result
     # print(result)
 

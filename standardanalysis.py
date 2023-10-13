@@ -153,14 +153,23 @@ def get_normal_2(signal):
     normal_wave_10 = normal_wave_5+normal_wave_5
     normal_wave = normal_wave_10
 
-    while len(normal_wave) < original_len:
-        normal_wave = normal_wave + normal_wave_10
-    normal_wave = normal_wave[:original_len]
-    return normal_wave
+    if len(normal_wave)>0: # iki diakal cekno signal sing angkane gak melewati 0 iki onok 'stopper' e, nek ga ono stopper e mlebu nang else
+        while len(normal_wave) < original_len:
+            normal_wave = normal_wave + normal_wave_10
+        normal_wave = normal_wave[:original_len]
+        return normal_wave
+    else:
+        # raise ValueError('Uncompatible signal found!')
+        if np.mean(np.abs(signal)) < 10: #mboh iki lapo, pokoke hasile aneh jadi perlu diakal cekno metu angkane (toh angkane cilik kan)
+            return list(np.zeros(original_len))
+        else:
+            raise ValueError('Uncompatible signal found!')
+            return list(np.zeros(original_len))
 
 
 def analyze(df):
     result = []
+    error = False
     try:
         len_df = len(df.TIME)
 
@@ -247,8 +256,9 @@ def analyze(df):
                 plt.clf()
             except:
                 print("Unable to save figures.")
-    except x:
+    except:
         result.append("Error found when running.")
+        error = True
         # print("Error found when running.")
 
-    return result
+    return result, error
